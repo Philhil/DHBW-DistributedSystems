@@ -1,4 +1,7 @@
 import java.net.*;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Observable;
 import java.util.Observer;
 import java.io.*;
@@ -13,6 +16,11 @@ public class Server extends Observable {
 		try{
 			int serverPort = 8000; 
 			server.listenSocket = new ServerSocket(serverPort);
+			
+			Message sMessage = new MessageServant(server);
+			 
+			Naming.rebind("MessagePrinter", sMessage);
+			
 			while(server.serverrunning) {
 				Socket clientSocket = server.listenSocket.accept();
 				
@@ -121,4 +129,28 @@ class ServerMulti extends Thread implements Observer {
 			 //e.printStackTrace(); 
 		 }
 	}
+}
+
+class RMIConnection extends Thread implements Observer {
+
+	ClientMsg refc = null;
+	String nickname = null;
+	
+	public RMIConnection(String user, ClientMsg cl) {
+		refc = cl;
+		nickname = user;
+	}
+	
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		try {
+			refc.printMsg(arg + "\n");
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
 }
